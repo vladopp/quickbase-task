@@ -1,15 +1,15 @@
 import json
+from unittest import TestCase
 
 from werkzeug import Request, Response
-from unittest import TestCase
 
 from freshdesk_client import FreshdeskClient, FreshdeskContact
 
 
-def test_create_user(httpserver):
+def test_update_user(httpserver):
     mock_server_url = httpserver.url_for("")
     actual_get_contacts_request_parameters = {}
-    expected_get_contacts_request_parameters = {"email": "email", "twitter_id": "twitter-id"}
+    expected_get_contacts_request_parameters = {"email": "email"}
 
     def handle_get_contacts(req: Request):
         actual_get_contacts_request_parameters.update(req.args)
@@ -36,14 +36,14 @@ def test_create_user(httpserver):
     contact = FreshdeskContact("name", "email", "address", "twitter-id")
     freshdesk_client.create_or_update_contact(contact)
 
-    TestCase().assertDictEqual(expected_update_contact_body, actual_update_contact_body)
     TestCase().assertDictEqual(expected_get_contacts_request_parameters, actual_get_contacts_request_parameters)
+    TestCase().assertDictEqual(expected_update_contact_body, actual_update_contact_body)
 
 
-def test_update_user(httpserver):
+def test_create_user(httpserver):
     mock_server_url = httpserver.url_for("")
     actual_get_contacts_request_parameters = {}
-    expected_get_contacts_request_parameters = {"email": "email", "twitter_id": "twitter-id"}
+    expected_get_contacts_request_parameters = {"email": "email"}
 
     def handle_get_contacts(req: Request):
         actual_get_contacts_request_parameters.update(req.args)
@@ -92,4 +92,4 @@ CONTACT_RESPONSE = {
     "updated_at": "2015-08-24T09:25:19Z",
     "other_companies": [4],
     "custom_fields": None
-  }
+}

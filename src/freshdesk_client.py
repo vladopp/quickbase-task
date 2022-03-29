@@ -25,22 +25,23 @@ class FreshdeskClient:
     Client for interacting with Freshdesk APIs
     """
 
-    def __init__(self, url: str, api_token: str):
+    def __init__(self, url: str, api_token: str, request_timeout: int = 10):
         logging.debug(f"Initializing Freshdesk client for url {url}")
         self._url = url
         self._api_token = api_token
+        self._request_timeout = request_timeout
 
     def create_or_update_contact(self, contact: FreshdeskContact) -> None:
         """
-        Creates a Freshdesk contact. If there already exists contact with such email or twitter id its attributes will
-        be updated with the provided ones.
+        Creates a Freshdesk contact. If there already exists contact with such email,
+        its attributes will be updated with the provided ones.
         If the provided contact is softly deleted, then the operation would fail.
 
         :param contact: the contact to be created or updated
+        :raises ValueError if the contact does not have an email
         """
-        if contact.email is None and contact.twitter_id is None:
-            raise ValueError("The contact provided has neither email nor twitter id."
-                             " It is mandatory to have at least one of them.")
+        if contact.email is None:
+            raise ValueError("The contact provided has no email, but this field is mandatory.")
 
         contact_id = self._get_contact_id(contact)
         if contact_id is not None:
@@ -57,7 +58,8 @@ class FreshdeskClient:
             response = requests.post(url=self._url + CONTACTS_ENDPOINT,
                                      headers=self._get_headers(),
                                      data=json.dumps(contact.__dict__),
-                                     auth=self._get_basic_auth())
+                                     auth=self._get_basic_auth(),
+                                     timeout=self._request_timeout)
             response.raise_for_status()
             logging.debug(f"Contact was successfully created")
         except RequestException as request_exception:
@@ -66,24 +68,22 @@ class FreshdeskClient:
 
     def _get_contact_id(self, contact: FreshdeskContact) -> Optional[int]:
         try:
-            logging.debug(f"Attempting to retrieve contact id for email {contact.email} "
-                          f"and twitter id {contact.twitter_id}")
+            logging.debug(f"Attempting to retrieve contact id for email {contact.email}")
             response = requests.get(url=self._url + CONTACTS_ENDPOINT,
                                     headers=self._get_headers(),
-                                    params={"email": contact.email, "twitter_id": contact.twitter_id},
-                                    auth=self._get_basic_auth())
+                                    params={"email": contact.email},
+                                    auth=self._get_basic_auth(),
+                                    timeout=self._request_timeout)
             response.raise_for_status()
             json_resp = response.json()
             if len(json_resp) == 0:
-                logging.debug(f"No existing contact with email {contact.email} "
-                              f"and twitter id {contact.twitter_id} was found")
+                logging.debug(f"No existing contact with email {contact.email}")
                 return None  # no contact with this mail was found
             else:
-                logging.debug(f"Found contact with email {contact.email} and twitter id {contact.twitter_id}")
+                logging.debug(f"Found contact with email {contact.email}")
                 return json_resp[0]["id"]
         except RequestException as request_exception:
-            logging.error(f"Error occurred while trying to retrieve contact id for email {contact.email} and "
-                          f"twitter id {contact.twitter_id}")
+            logging.error(f"Error occurred while trying to retrieve contact id for email {contact.email}")
             raise request_exception
 
     def _update_contact(self, contact: FreshdeskContact, contact_id: int):
@@ -93,7 +93,8 @@ class FreshdeskClient:
                 url=self._url + CONTACTS_ENDPOINT + "/" + str(contact_id),
                 headers=self._get_headers(),
                 data=json.dumps(contact.__dict__),
-                auth=self._get_basic_auth())
+                auth=self._get_basic_auth(),
+                timeout=self._request_timeout)
             response.raise_for_status()
             logging.debug(f"Successfully updated contact with id {contact_id}")
         except RequestException as request_exception:

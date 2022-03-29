@@ -10,7 +10,7 @@ FRESHDESK_TOKEN_ENV_KEY = "FRESHDESK_TOKEN"
 GITHUB_TOKEN_ENV_KEY = "GITHUB_TOKEN"
 
 
-def run():
+def run() -> None:
     parser = argparse.ArgumentParser(description="""
     Retrieves the information of a GitHub User and creates a new Contact or updates an existing one in Freshdesk,
      using their respective APIs
@@ -40,8 +40,5 @@ def run():
 
 
 if __name__ == '__main__':
-    # useful for local run setup - Set keys
-    # environ[FRESHDESK_TOKEN_ENV_KEY] = ""
-    # environ[GITHUB_TOKEN_ENV_KEY] = ""
     logging.basicConfig(level=environ.get("LOG_LEVEL", "DEBUG"))
     run()

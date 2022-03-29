@@ -13,7 +13,10 @@ def transform_github_user_to_freshdesk_contact(user: GithubUser) -> FreshdeskCon
     :param user: the Github user to transform
     :return: FreshdeskContact object with the compatible attributes populated
     """
-    return FreshdeskContact(name=user.name, email=user.email, address=user.location, twitter_id=user.twitter_username)
+    return FreshdeskContact(name=user.name,
+                            email=user.email,
+                            address=user.location,
+                            twitter_id=user.twitter_username)
 
 
 def validate_github_username(username: str) -> None:
